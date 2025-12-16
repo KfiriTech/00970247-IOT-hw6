@@ -13,7 +13,10 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.example.tutorial6_bluetooth.constants.Constants
 import com.example.tutorial6_bluetooth.logging.DataLogger
+import com.example.tutorial6_bluetooth.logging.LogUtils
 import com.example.tutorial6_bluetooth.logging.TextFileLogger
+import com.example.tutorial6_bluetooth.parser.IMUDataParser
+import com.example.tutorial6_bluetooth.parser.IMU_Reading
 import com.example.tutorial6_bluetooth.ui.MainActivity
 import kotlinx.coroutines.*
 
@@ -29,6 +32,10 @@ class SerialService : Service(), SerialListener {
     private var connected = false
     private val logger: DataLogger = TextFileLogger()
     private var currentLogFilename: String? = null
+
+    // IMU data parsing
+    private val imuBuffer = StringBuilder()
+    private var recordingStartTime: Long = 0
 
     // Public properties for clients
     val isConnected: Boolean
@@ -122,6 +129,8 @@ class SerialService : Service(), SerialListener {
         android.util.Log.d("SerialService", "startLogging: prefix=$prefix type=$type")
         stopLogging() // Stop existing if any
         currentLogFilename = logger.start(this, prefix, type)
+        recordingStartTime = System.currentTimeMillis() // Initialize timestamp
+        imuBuffer.clear() // Clear any old data in buffer
         broadcastConnectionState(connected) // Broadcast new filename
     }
 
@@ -171,7 +180,26 @@ class SerialService : Service(), SerialListener {
         // android.util.Log.d("SerialService", "onSerialRead: ${data.size} bytes") // Verbose
         val text = String(data)
         logger.log(text)
-        
+
+        // Process buffer to extract complete lines
+        val lines = LogUtils.processBuffer(imuBuffer, text)
+
+        for (line in lines) {
+            // Calculate elapsed time since recording started
+            val currentTime = System.currentTimeMillis()
+            val elapsed = (currentTime - recordingStartTime) / 1000.0f
+
+            // Parse IMU data
+            val reading = IMUDataParser.parse(line, elapsed)
+
+            if (reading != null) {
+                // Broadcast parsed IMU data to activities
+            } else {
+                android.util.Log.w("SerialService", "Failed to parse IMU data: $line")
+            }
+        }
+
+        // Also broadcast raw data for Terminal activity
         val intent = Intent(Constants.ACTION_SERIAL_DATA_RECEIVED)
         intent.putExtra(Constants.EXTRA_DATA, data)
         intent.setPackage(packageName)
@@ -198,6 +226,8 @@ class SerialService : Service(), SerialListener {
         intent.setPackage(packageName)
         sendBroadcast(intent)
     }
+
+
 
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
