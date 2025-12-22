@@ -1,0 +1,14 @@
+<!-- app/src/main/res/values/styles.xml -->
+<resources>
+    <style name="ChartStyleLine">
+        <item name="layers">line</item>
+        <item name="showBottomAxis">true</item>
+        <item name="showStartAxis">true</item>
+    </style>
+
+    <style name="ChartStyleColumn">
+        <item name="layers">column</item>
+        <item name="showBottomAxis">true</item>
+        <item name="showStartAxis">true</item>
+    </style>
+</resources>
