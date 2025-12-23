@@ -110,6 +110,132 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- IMU Data Display Section -->
+    <LinearLayout
+        android:id="@+id/llImuData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:background="#E3F2FD"
+        android:visibility="visible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Live IMU Data:"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:layout_marginBottom="4dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <!-- Accelerometer Column -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Accelerometer (m/s²)"
+                    android:textStyle="bold"
+                    android:textSize="10sp"/>
+
+                <TextView
+                    android:id="@+id/tvAccX"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="X: --"
+                    android:textSize="10sp"
+                    android:fontFamily="monospace"/>
+
+                <TextView
+                    android:id="@+id/tvAccY"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Y: --"
+                    android:textSize="10sp"
+                    android:fontFamily="monospace"/>
+
+                <TextView
+                    android:id="@+id/tvAccZ"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Z: --"
+                    android:textSize="10sp"
+                    android:fontFamily="monospace"/>
+            </LinearLayout>
+
+            <!-- Gyroscope Column -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Gyroscope (rad/s)"
+                    android:textStyle="bold"
+                    android:textSize="10sp"/>
+
+                <TextView
+                    android:id="@+id/tvGyroX"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="X: --"
+                    android:textSize="10sp"
+                    android:fontFamily="monospace"/>
+
+                <TextView
+                    android:id="@+id/tvGyroY"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Y: --"
+                    android:textSize="10sp"
+                    android:fontFamily="monospace"/>
+
+                <TextView
+                    android:id="@+id/tvGyroZ"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Z: --"
+                    android:textSize="10sp"
+                    android:fontFamily="monospace"/>
+            </LinearLayout>
+
+            <!-- Timestamp Column -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.7"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Time (s)"
+                    android:textStyle="bold"
+                    android:textSize="10sp"/>
+
+                <TextView
+                    android:id="@+id/tvTimestamp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--"
+                    android:textSize="10sp"
+                    android:fontFamily="monospace"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"

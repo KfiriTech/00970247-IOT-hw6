@@ -13,6 +13,7 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.example.tutorial6_bluetooth.constants.Constants
 import com.example.tutorial6_bluetooth.logging.DataLogger
+import com.example.tutorial6_bluetooth.logging.IMUCSVLogger
 import com.example.tutorial6_bluetooth.logging.LogUtils
 import com.example.tutorial6_bluetooth.logging.TextFileLogger
 import com.example.tutorial6_bluetooth.parser.IMUDataParser
@@ -31,7 +32,9 @@ class SerialService : Service(), SerialListener {
     private val connectionManager = SerialConnectionManager(serviceScope)
     private var connected = false
     private val logger: DataLogger = TextFileLogger()
+    private val imuLogger: IMUCSVLogger = IMUCSVLogger()
     private var currentLogFilename: String? = null
+    private var currentIMULogFilename: String? = null
 
     // IMU data parsing
     private val imuBuffer = StringBuilder()
@@ -129,15 +132,19 @@ class SerialService : Service(), SerialListener {
         android.util.Log.d("SerialService", "startLogging: prefix=$prefix type=$type")
         stopLogging() // Stop existing if any
         currentLogFilename = logger.start(this, prefix, type)
+        currentIMULogFilename = imuLogger.start(this, "imu_data")
         recordingStartTime = System.currentTimeMillis() // Initialize timestamp
         imuBuffer.clear() // Clear any old data in buffer
         broadcastConnectionState(connected) // Broadcast new filename
+        android.util.Log.d("SerialService", "Started logging: raw=$currentLogFilename, imu=$currentIMULogFilename")
     }
 
     private fun stopLogging() {
         android.util.Log.d("SerialService", "stopLogging")
         logger.stop()
+        imuLogger.stop()
         currentLogFilename = null
+        currentIMULogFilename = null
         broadcastConnectionState(connected) // Broadcast update
     }
 
@@ -193,7 +200,20 @@ class SerialService : Service(), SerialListener {
             val reading = IMUDataParser.parse(line, elapsed)
 
             if (reading != null) {
-                // Broadcast parsed IMU data to activities
+                // Log to structured CSV file
+                imuLogger.logIMUReading(reading)
+
+                // Broadcast parsed IMU data to activities for real-time display
+                val imuIntent = Intent(Constants.ACTION_IMU_DATA_RECEIVED)
+                imuIntent.putExtra("timestamp", reading.timestamp)
+                imuIntent.putExtra("accX", reading.accX)
+                imuIntent.putExtra("accY", reading.accY)
+                imuIntent.putExtra("accZ", reading.accZ)
+                imuIntent.putExtra("gyroX", reading.gyroX)
+                imuIntent.putExtra("gyroY", reading.gyroY)
+                imuIntent.putExtra("gyroZ", reading.gyroZ)
+                imuIntent.setPackage(packageName)
+                sendBroadcast(imuIntent)
             } else {
                 android.util.Log.w("SerialService", "Failed to parse IMU data: $line")
             }

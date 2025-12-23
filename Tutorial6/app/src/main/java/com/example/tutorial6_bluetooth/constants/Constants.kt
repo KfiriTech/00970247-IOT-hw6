@@ -10,6 +10,7 @@ object Constants {
     const val ACTION_SERIAL_CONNECT = "com.example.tutorial6_bluetooth.ACTION_SERIAL_CONNECT"
     const val ACTION_SERIAL_DISCONNECT = "com.example.tutorial6_bluetooth.ACTION_SERIAL_DISCONNECT"
     const val ACTION_SERIAL_DATA_RECEIVED = "com.example.tutorial6_bluetooth.ACTION_SERIAL_DATA_RECEIVED"
+    const val ACTION_IMU_DATA_RECEIVED = "com.example.tutorial6_bluetooth.ACTION_IMU_DATA_RECEIVED"
     const val ACTION_WRITE_DATA = "com.example.tutorial6_bluetooth.ACTION_WRITE_DATA"
     const val ACTION_SERIAL_STATE_CHANGED = "com.example.tutorial6_bluetooth.ACTION_SERIAL_STATE_CHANGED"
     

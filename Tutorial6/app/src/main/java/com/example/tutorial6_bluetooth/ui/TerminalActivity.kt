@@ -129,6 +129,7 @@ class TerminalActivity : AppCompatActivity() {
         val filter = IntentFilter()
         filter.addAction(Constants.ACTION_SERIAL_DATA_RECEIVED)
         filter.addAction(Constants.ACTION_SERIAL_STATE_CHANGED)
+        filter.addAction(Constants.ACTION_IMU_DATA_RECEIVED)
         ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
     }
 
@@ -151,11 +152,22 @@ class TerminalActivity : AppCompatActivity() {
                         }
                     }
                 }
+                Constants.ACTION_IMU_DATA_RECEIVED -> {
+                    val timestamp = intent.getFloatExtra("timestamp", 0f)
+                    val accX = intent.getFloatExtra("accX", 0f)
+                    val accY = intent.getFloatExtra("accY", 0f)
+                    val accZ = intent.getFloatExtra("accZ", 0f)
+                    val gyroX = intent.getFloatExtra("gyroX", 0f)
+                    val gyroY = intent.getFloatExtra("gyroY", 0f)
+                    val gyroZ = intent.getFloatExtra("gyroZ", 0f)
+
+                    updateIMUDisplay(timestamp, accX, accY, accZ, gyroX, gyroY, gyroZ)
+                }
                 Constants.ACTION_SERIAL_STATE_CHANGED -> {
                     val isConnected = intent.getBooleanExtra(Constants.EXTRA_SERVICE_CONNECTED, false)
                     val logFilename = intent.getStringExtra(Constants.EXTRA_LOG_FILENAME)
                     android.util.Log.d("TerminalActivity", "State changed: isConnected=$isConnected, logFilename=$logFilename")
-                    
+
                     updateRecordingUI(logFilename)
 
                     if (!isConnected) {
@@ -171,6 +183,19 @@ class TerminalActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun updateIMUDisplay(timestamp: Float, accX: Float, accY: Float, accZ: Float, gyroX: Float, gyroY: Float, gyroZ: Float) {
+        lifecycleScope.launch(Dispatchers.Main) {
+            binding.tvTimestamp.text = String.format("%.2f", timestamp)
+            binding.tvAccX.text = String.format("X: %.2f", accX)
+            binding.tvAccY.text = String.format("Y: %.2f", accY)
+            binding.tvAccZ.text = String.format("Z: %.2f", accZ)
+            binding.tvGyroX.text = String.format("X: %.2f", gyroX)
+            binding.tvGyroY.text = String.format("Y: %.2f", gyroY)
+            binding.tvGyroZ.text = String.format("Z: %.2f", gyroZ)
         }
     }
 
