@@ -34,6 +34,7 @@ class FileExplorerActivity : AppCompatActivity() {
 
     private lateinit var rvFiles: RecyclerView
     private lateinit var btnView: Button
+    private lateinit var btnViewChart: Button
     private lateinit var btnDelete: Button
     private lateinit var btnReturn: Button
     
@@ -50,6 +51,7 @@ class FileExplorerActivity : AppCompatActivity() {
 
         rvFiles = findViewById(R.id.rvFiles)
         btnView = findViewById(R.id.btnView)
+        btnViewChart = findViewById(R.id.btnViewChart)
         btnDelete = findViewById(R.id.btnDelete)
         btnReturn = findViewById(R.id.btnReturn)
 
@@ -89,7 +91,18 @@ class FileExplorerActivity : AppCompatActivity() {
         btnView.setOnClickListener {
             val file = logic.getSelectedFile()
             if (file != null) {
+                // Always show text content
                 showFileContent(file)
+            }
+        }
+
+        btnViewChart.setOnClickListener {
+            val file = logic.getSelectedFile()
+            if (file != null) {
+                // Open graphical viewer for CSV files
+                val intent = Intent(this, CSVPlotterActivity::class.java)
+                intent.putExtra("FILE_PATH", file.absolutePath)
+                startActivity(intent)
             }
         }
     }
@@ -124,6 +137,7 @@ class FileExplorerActivity : AppCompatActivity() {
     private fun updateButtons() {
         val selected = logic.getSelectedFile() != null
         btnView.isEnabled = selected
+        btnViewChart.isEnabled = selected
         btnDelete.isEnabled = selected
     }
 

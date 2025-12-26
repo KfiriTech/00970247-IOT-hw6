@@ -25,11 +25,14 @@ object Constants {
     const val EXTRA_LOG_FILENAME_PREFIX = "log_filename_prefix"
     const val EXTRA_LOG_TYPE = "log_type"
     const val EXTRA_ERROR = "error"
+    const val EXTRA_ACTIVITY_TYPE = "activity_type"
+    const val EXTRA_RECORDING_TIMESTAMP = "recording_timestamp"
+    const val EXTRA_STEP_COUNT = "step_count"
 
     // Notification
     const val NOTIFICATION_CHANNEL_ID = "serial_channel"
     const val NOTIFICATION_ID = 1
 
     // Configuration
-    const val RECORD_ON_CONNECTION = true
+    const val RECORD_ON_CONNECTION = false
 }

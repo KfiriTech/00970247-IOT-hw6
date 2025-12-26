@@ -14,9 +14,22 @@ object IMUDataParser {
     fun parse(line: String, timestamp: Float): IMU_Reading? {
         val values = line.split(",").map { it.trim().toFloatOrNull() }
         if (values.any { it == null }) return null
-        if (values.size == 6) {
-            return IMU_Reading(
-                timestamp = timestamp,
+
+        // Handle both formats:
+        // Format 1 (7 values): timestamp,accX,accY,accZ,gyroX,gyroY,gyroZ
+        // Format 2 (6 values): accX,accY,accZ,gyroX,gyroY,gyroZ (use calculated timestamp)
+        return when (values.size) {
+            7 -> IMU_Reading(
+                timestamp = values[0]!!,  // Use timestamp from data
+                accX = values[1]!!,
+                accY = values[2]!!,
+                accZ = values[3]!!,
+                gyroX = values[4]!!,
+                gyroY = values[5]!!,
+                gyroZ = values[6]!!
+            )
+            6 -> IMU_Reading(
+                timestamp = timestamp,  // Use calculated timestamp
                 accX = values[0]!!,
                 accY = values[1]!!,
                 accZ = values[2]!!,
@@ -24,7 +37,7 @@ object IMUDataParser {
                 gyroY = values[4]!!,
                 gyroZ = values[5]!!
             )
+            else -> null
         }
-        return null
     }
 }

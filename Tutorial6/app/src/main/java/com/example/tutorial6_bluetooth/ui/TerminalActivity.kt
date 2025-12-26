@@ -7,10 +7,13 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Color
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -20,8 +23,15 @@ import com.example.tutorial6_bluetooth.R
 import com.example.tutorial6_bluetooth.constants.Constants
 import com.example.tutorial6_bluetooth.databinding.ActivityTerminalBinding
 import com.example.tutorial6_bluetooth.service.SerialService
+import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.*
 
 class TerminalActivity : AppCompatActivity() {
@@ -30,6 +40,13 @@ class TerminalActivity : AppCompatActivity() {
     private val messages = ArrayList<Message>()
     private lateinit var adapter: MessageAdapter
     private val buffer = StringBuilder()
+
+    // Chart for real-time accelerometer plotting
+    private lateinit var chart: LineChart
+    private val chartDataX = ArrayList<Entry>()
+    private val chartDataY = ArrayList<Entry>()
+    private val chartDataZ = ArrayList<Entry>()
+    private val maxDataPoints = 100 // Rolling window
 
     data class Message(val text: String, val isIncoming: Boolean)
 
@@ -42,6 +59,7 @@ class TerminalActivity : AppCompatActivity() {
         setupRecyclerView()
         setupFilename()
         setupSlowMode()
+        setupChart()
 
         binding.btnReturn.setOnClickListener {
             finish()
@@ -51,20 +69,27 @@ class TerminalActivity : AppCompatActivity() {
             val isRecording = binding.btnRecord.text == "Stop Recording"
             android.util.Log.d("TerminalActivity", "btnRecord clicked: isRecording=$isRecording")
             if (isRecording) {
-                // Stop
-                val intent = Intent(this, SerialService::class.java)
-                intent.action = Constants.ACTION_STOP_LOGGING
-                startService(intent)
+                // Stop - Show step count dialog
+                showStepCountDialog()
             } else {
-                // Start
+                // Start - Capture metadata
                 val prefix = binding.etLogPrefix.text.toString()
                 val type = if (binding.rbCsv.isChecked) "CSV" else "TXT"
-                
+                val activityType = if (binding.rbRunning.isChecked) "Running" else "Walking"
+                // Format: dd/MM/yyyy  HH:mm (with 2 spaces before time as per assignment)
+                val timestamp = SimpleDateFormat("dd/MM/yyyy  HH:mm", Locale.getDefault()).format(Date())
+
                 val intent = Intent(this, SerialService::class.java)
                 intent.action = Constants.ACTION_START_LOGGING
                 intent.putExtra(Constants.EXTRA_LOG_FILENAME_PREFIX, prefix)
                 intent.putExtra(Constants.EXTRA_LOG_TYPE, type)
+                intent.putExtra(Constants.EXTRA_ACTIVITY_TYPE, activityType)
+                intent.putExtra(Constants.EXTRA_RECORDING_TIMESTAMP, timestamp)
                 startService(intent)
+
+                // Disable activity type selection during recording
+                binding.rbWalking.isEnabled = false
+                binding.rbRunning.isEnabled = false
             }
         }
 
@@ -193,9 +218,9 @@ class TerminalActivity : AppCompatActivity() {
             binding.tvAccX.text = String.format("X: %.2f", accX)
             binding.tvAccY.text = String.format("Y: %.2f", accY)
             binding.tvAccZ.text = String.format("Z: %.2f", accZ)
-            binding.tvGyroX.text = String.format("X: %.2f", gyroX)
-            binding.tvGyroY.text = String.format("Y: %.2f", gyroY)
-            binding.tvGyroZ.text = String.format("Z: %.2f", gyroZ)
+
+            // Update real-time chart with accelerometer data
+            updateChart(timestamp, accX, accY, accZ)
         }
     }
 
@@ -208,6 +233,8 @@ class TerminalActivity : AppCompatActivity() {
             binding.etLogPrefix.isEnabled = false
             binding.rbTxt.isEnabled = false
             binding.rbCsv.isEnabled = false
+            binding.rbWalking.isEnabled = false
+            binding.rbRunning.isEnabled = false
             binding.tvFilename.text = "Recording: $filename"
         } else {
             // Not Recording
@@ -216,6 +243,8 @@ class TerminalActivity : AppCompatActivity() {
             binding.etLogPrefix.isEnabled = true
             binding.rbTxt.isEnabled = true
             binding.rbCsv.isEnabled = true
+            binding.rbWalking.isEnabled = true
+            binding.rbRunning.isEnabled = true
             binding.tvFilename.text = "Not Recording"
         }
     }
@@ -276,19 +305,141 @@ class TerminalActivity : AppCompatActivity() {
 
     private fun sendMessage(text: String) {
         android.util.Log.d("TerminalActivity", "Sending message: $text")
-        // Always add sent messages immediately for better UX, or follow slow mode? 
+        // Always add sent messages immediately for better UX, or follow slow mode?
         // Usually sent messages should be immediate. Let's keep them immediate.
         lifecycleScope.launch(Dispatchers.Main) {
             messages.add(Message(text, false))
             adapter.notifyItemInserted(messages.size - 1)
             binding.recyclerView.scrollToPosition(messages.size - 1)
         }
-        
+
         // Send intent to service to write data
         val intent = Intent(this, SerialService::class.java)
         intent.action = Constants.ACTION_WRITE_DATA
         intent.putExtra(Constants.EXTRA_DATA, text.toByteArray())
         startService(intent)
+    }
+
+    private fun setupChart() {
+        chart = binding.chartAccelerometer
+
+        // Chart styling
+        chart.description.isEnabled = false
+        chart.setTouchEnabled(false)
+        chart.isDragEnabled = false
+        chart.setScaleEnabled(false)
+        chart.setDrawGridBackground(false)
+        chart.setPinchZoom(false)
+        chart.setNoDataText("Waiting for IMU data...")
+        chart.setNoDataTextColor(Color.GRAY)
+
+        // X-axis (Time)
+        chart.xAxis.position = XAxis.XAxisPosition.BOTTOM
+        chart.xAxis.textColor = Color.BLACK
+        chart.xAxis.setDrawGridLines(true)
+        chart.xAxis.granularity = 1f
+        chart.xAxis.labelCount = 5
+
+        // Y-axis (Acceleration)
+        chart.axisLeft.textColor = Color.BLACK
+        chart.axisLeft.setDrawGridLines(true)
+        chart.axisLeft.axisMinimum = -20f
+        chart.axisLeft.axisMaximum = 20f
+        chart.axisRight.isEnabled = false
+
+        // Legend
+        val legend = chart.legend
+        legend.isEnabled = true
+        legend.textColor = Color.BLACK
+        legend.textSize = 10f
+        legend.form = Legend.LegendForm.LINE
+        legend.verticalAlignment = Legend.LegendVerticalAlignment.TOP
+        legend.horizontalAlignment = Legend.LegendHorizontalAlignment.RIGHT
+        legend.orientation = Legend.LegendOrientation.VERTICAL
+        legend.setDrawInside(true)
+
+        // Don't initialize chart data yet - wait for first IMU data
+        // This prevents NegativeArraySizeException when drawing empty datasets
+    }
+
+    private fun updateChart(timestamp: Float, accX: Float, accY: Float, accZ: Float) {
+        // Add new data points
+        chartDataX.add(Entry(timestamp, accX))
+        chartDataY.add(Entry(timestamp, accY))
+        chartDataZ.add(Entry(timestamp, accZ))
+
+        // Initialize chart data on first data point
+        if (chart.data == null) {
+            val dataSetX = LineDataSet(chartDataX, "Acc X").apply {
+                color = Color.RED
+                setDrawCircles(false)
+                setDrawValues(false)
+                lineWidth = 2f
+            }
+
+            val dataSetY = LineDataSet(chartDataY, "Acc Y").apply {
+                color = Color.GREEN
+                setDrawCircles(false)
+                setDrawValues(false)
+                lineWidth = 2f
+            }
+
+            val dataSetZ = LineDataSet(chartDataZ, "Acc Z").apply {
+                color = Color.BLUE
+                setDrawCircles(false)
+                setDrawValues(false)
+                lineWidth = 2f
+            }
+
+            val lineData = LineData(dataSetX, dataSetY, dataSetZ)
+            chart.data = lineData
+        }
+
+        // Rolling window: remove old data
+        if (chartDataX.size > maxDataPoints) {
+            chartDataX.removeAt(0)
+            chartDataY.removeAt(0)
+            chartDataZ.removeAt(0)
+        }
+
+        // Notify chart of data change
+        chart.data.notifyDataChanged()
+        chart.notifyDataSetChanged()
+        chart.setVisibleXRangeMaximum(30f) // Show last 30 seconds
+        chart.moveViewToX(timestamp) // Auto-scroll
+        chart.invalidate()
+    }
+
+    private fun showStepCountDialog() {
+        val input = EditText(this)
+        input.inputType = InputType.TYPE_CLASS_NUMBER
+        input.hint = "Enter step count"
+
+        AlertDialog.Builder(this)
+            .setTitle("Step Count")
+            .setMessage("Enter the actual number of steps:")
+            .setView(input)
+            .setPositiveButton("Save") { dialog, _ ->
+                val steps = input.text.toString().ifEmpty { "N/A" }
+
+                // Send stop intent with step count
+                val intent = Intent(this, SerialService::class.java)
+                intent.action = Constants.ACTION_STOP_LOGGING
+                intent.putExtra(Constants.EXTRA_STEP_COUNT, steps)
+                startService(intent)
+
+                dialog.dismiss()
+            }
+            .setNegativeButton("Skip") { dialog, _ ->
+                val intent = Intent(this, SerialService::class.java)
+                intent.action = Constants.ACTION_STOP_LOGGING
+                intent.putExtra(Constants.EXTRA_STEP_COUNT, "N/A")
+                startService(intent)
+
+                dialog.dismiss()
+            }
+            .setCancelable(false)
+            .show()
     }
 
     inner class MessageAdapter(private val messages: List<Message>) :

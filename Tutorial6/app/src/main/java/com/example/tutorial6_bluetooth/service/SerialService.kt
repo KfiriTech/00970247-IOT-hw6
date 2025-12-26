@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.example.tutorial6_bluetooth.constants.Constants
+import com.example.tutorial6_bluetooth.logging.CSVMetadata
 import com.example.tutorial6_bluetooth.logging.DataLogger
 import com.example.tutorial6_bluetooth.logging.IMUCSVLogger
 import com.example.tutorial6_bluetooth.logging.LogUtils
@@ -20,6 +21,9 @@ import com.example.tutorial6_bluetooth.parser.IMUDataParser
 import com.example.tutorial6_bluetooth.parser.IMU_Reading
 import com.example.tutorial6_bluetooth.ui.MainActivity
 import kotlinx.coroutines.*
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class SerialService : Service(), SerialListener {
 
@@ -78,10 +82,14 @@ class SerialService : Service(), SerialListener {
             Constants.ACTION_START_LOGGING -> {
                 val prefix = intent.getStringExtra(Constants.EXTRA_LOG_FILENAME_PREFIX) ?: "log"
                 val type = intent.getStringExtra(Constants.EXTRA_LOG_TYPE) ?: "TXT"
-                startLogging(prefix, type)
+                val activityType = intent.getStringExtra(Constants.EXTRA_ACTIVITY_TYPE) ?: "Walking"
+                val timestamp = intent.getStringExtra(Constants.EXTRA_RECORDING_TIMESTAMP)
+                    ?: SimpleDateFormat("dd/MM/yyyy  HH:mm", Locale.getDefault()).format(Date())
+                startLogging(prefix, type, activityType, timestamp)
             }
             Constants.ACTION_STOP_LOGGING -> {
-                stopLogging()
+                val stepCount = intent.getStringExtra(Constants.EXTRA_STEP_COUNT)
+                stopLogging(stepCount)
             }
         }
         return START_STICKY
@@ -95,21 +103,23 @@ class SerialService : Service(), SerialListener {
     @SuppressLint("MissingPermission")
     private fun connect(deviceAddress: String) {
         android.util.Log.d("SerialService", "connect: $deviceAddress")
-        
-        // If already connected, disconnect first
+
+        // If already connected, just disconnect the socket, don't kill the service
         if (connected) {
             android.util.Log.d("SerialService", "Disconnecting existing connection before new connection")
-            disconnect()
+            connected = false
+            connectionManager.disconnect()
+            stopLogging()
         }
 
         val manager = getSystemService(android.bluetooth.BluetoothManager::class.java)
         val adapter = manager.adapter
         val device = adapter.getRemoteDevice(deviceAddress)
-        
+
         android.util.Log.d("SerialService", "Starting foreground service notification")
         if (Build.VERSION.SDK_INT >= 34) {
             startForeground(
-                Constants.NOTIFICATION_ID, 
+                Constants.NOTIFICATION_ID,
                 createNotification("Connecting to ${device.name ?: "Device"}..."),
                 android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
             )
@@ -117,31 +127,49 @@ class SerialService : Service(), SerialListener {
             startForeground(Constants.NOTIFICATION_ID, createNotification("Connecting to ${device.name ?: "Device"}..."))
         }
 
-        // Start logging if configured
-        //noinspection ConstantConditionIf
-        @Suppress("KotlinConstantConditions")
-        if (Constants.RECORD_ON_CONNECTION) {
-            startLogging()
-        }
+        // Removed auto-logging on connection - user must manually start recording
 
         val socket = SerialSocket(device, this)
         connectionManager.connect(socket)
     }
 
-    private fun startLogging(prefix: String = "log", type: String = "TXT") {
-        android.util.Log.d("SerialService", "startLogging: prefix=$prefix type=$type")
+    private fun startLogging(
+        prefix: String = "log",
+        type: String = "TXT",
+        activityType: String = "Walking",
+        timestamp: String = SimpleDateFormat("dd/MM/yyyy  HH:mm", Locale.getDefault()).format(Date())
+    ) {
+        android.util.Log.d("SerialService", "startLogging: prefix=$prefix type=$type activity=$activityType")
         stopLogging() // Stop existing if any
         currentLogFilename = logger.start(this, prefix, type)
-        currentIMULogFilename = imuLogger.start(this, "imu_data")
+
+        // Generate the CSV filename first to use in metadata
+        val csvFilename = LogUtils.generateFilename("imu_data", "CSV")
+
+        // Create metadata for CSV (use CSV filename in metadata)
+        val metadata = CSVMetadata(
+            filename = csvFilename,
+            timestamp = timestamp,
+            activityType = activityType,
+            stepCount = "PENDING"
+        )
+
+        currentIMULogFilename = imuLogger.start(this, "imu_data", metadata)
         recordingStartTime = System.currentTimeMillis() // Initialize timestamp
         imuBuffer.clear() // Clear any old data in buffer
         broadcastConnectionState(connected) // Broadcast new filename
         android.util.Log.d("SerialService", "Started logging: raw=$currentLogFilename, imu=$currentIMULogFilename")
     }
 
-    private fun stopLogging() {
-        android.util.Log.d("SerialService", "stopLogging")
+    private fun stopLogging(stepCount: String? = null) {
+        android.util.Log.d("SerialService", "stopLogging: stepCount=$stepCount")
         logger.stop()
+
+        // Update step count in CSV if provided
+        if (stepCount != null && currentIMULogFilename != null) {
+            imuLogger.updateStepCount(this, currentIMULogFilename!!, stepCount)
+        }
+
         imuLogger.stop()
         currentLogFilename = null
         currentIMULogFilename = null
@@ -175,12 +203,19 @@ class SerialService : Service(), SerialListener {
     }
 
     override fun onSerialConnectError(e: Exception) {
-        android.util.Log.e("SerialService", "onSerialConnectError", e)
+        android.util.Log.e("SerialService", "onSerialConnectError: ${e.message}", e)
         connected = false
-        updateNotification("Connection Failed")
-        // Ensure we broadcast the failure state so UI knows
+
+        // Clean up connection
+        connectionManager.disconnect()
+        stopLogging()
+
+        // Broadcast error to UI
         broadcastConnectionState(false, true)
-        disconnect()
+
+        // Remove foreground notification and stop service
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
     }
 
     override fun onSerialRead(data: ByteArray) {

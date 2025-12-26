@@ -50,8 +50,16 @@
                 android:id="@+id/btnView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="View"
-                android:layout_marginEnd="16dp"
+                android:text="View Text"
+                android:layout_marginEnd="8dp"
+                android:enabled="false"/>
+
+            <Button
+                android:id="@+id/btnViewChart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="View Chart"
+                android:layout_marginEnd="8dp"
                 android:enabled="false"/>
 
             <Button

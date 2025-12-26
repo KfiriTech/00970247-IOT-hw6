@@ -82,6 +82,9 @@ class DeviceListActivity : AppCompatActivity() {
     }
 
     private fun connectToDevice(device: BluetoothDevice) {
+        android.util.Log.d("DeviceListActivity", "connectToDevice: ${device.address}")
+        android.widget.Toast.makeText(this, "Connecting to ${device.name}...", android.widget.Toast.LENGTH_SHORT).show()
+
         val intent = Intent(this, SerialService::class.java)
         intent.action = Constants.ACTION_SERIAL_CONNECT
         intent.putExtra(Constants.EXTRA_DEVICE_ADDRESS, device.address)
@@ -91,18 +94,24 @@ class DeviceListActivity : AppCompatActivity() {
 
     private val receiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: android.content.Context?, intent: Intent?) {
+            android.util.Log.d("DeviceListActivity", "Broadcast received: ${intent?.action}")
             if (intent?.action == Constants.ACTION_SERIAL_STATE_CHANGED) {
                 val isConnected = intent.getBooleanExtra(Constants.EXTRA_SERVICE_CONNECTED, false)
+                val isError = intent.getBooleanExtra(Constants.EXTRA_ERROR, false)
+                android.util.Log.d("DeviceListActivity", "Connection state: connected=$isConnected, error=$isError")
+
                 if (isConnected) {
+                    android.util.Log.d("DeviceListActivity", "Connection successful, starting TerminalActivity")
                     val terminalIntent = Intent(this@DeviceListActivity, TerminalActivity::class.java)
                     startActivity(terminalIntent)
                     finish()
-                } else {
-                    // Only show toast if it was an error
-                    val isError = intent.getBooleanExtra(Constants.EXTRA_ERROR, false)
-                    if (isError) {
-                        android.widget.Toast.makeText(this@DeviceListActivity, "Connection failed", android.widget.Toast.LENGTH_SHORT).show()
-                    }
+                } else if (isError) {
+                    android.util.Log.e("DeviceListActivity", "Connection failed with error")
+                    android.widget.Toast.makeText(
+                        this@DeviceListActivity,
+                        "Connection failed. Please ensure device is paired and in range.",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }

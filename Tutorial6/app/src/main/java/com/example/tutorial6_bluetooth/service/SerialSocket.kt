@@ -27,7 +27,7 @@ class SerialSocket(
     @SuppressLint("MissingPermission")
     override suspend fun connectAndRun() {
         withContext(Dispatchers.IO) {
-            android.util.Log.d("SerialSocket", "connectAndRun: Starting")
+            android.util.Log.d("SerialSocket", "connectAndRun: Starting connection to device ${device.address}")
             try {
                 var currentSocket: BluetoothSocket?
                 synchronized(disconnectLock) {
@@ -35,13 +35,17 @@ class SerialSocket(
                         android.util.Log.d("SerialSocket", "connectAndRun: Already disconnected, aborting")
                         throw CancellationException("Disconnected before connect")
                     }
+                    android.util.Log.d("SerialSocket", "connectAndRun: Creating RFCOMM socket with UUID ${Constants.SERIAL_UUID}")
                     currentSocket = device.createRfcommSocketToServiceRecord(Constants.SERIAL_UUID)
                     socket = currentSocket
+                    android.util.Log.d("SerialSocket", "connectAndRun: RFCOMM socket created successfully")
                 }
-                
+
                 // Connect is blocking, so we do it outside the lock but check for null/closed if disconnected
+                android.util.Log.d("SerialSocket", "connectAndRun: Attempting to connect...")
                 currentSocket?.connect()
-                
+                android.util.Log.d("SerialSocket", "connectAndRun: Socket connected successfully")
+
                 // Double check after connect if we were disconnected in the meantime
                 synchronized(disconnectLock) {
                     if (isDisconnected) {
@@ -51,9 +55,9 @@ class SerialSocket(
                         throw CancellationException("Disconnected during connect")
                     }
                 }
-                
+
                 listener.onSerialConnect()
-                android.util.Log.d("SerialSocket", "connectAndRun: Connected")
+                android.util.Log.d("SerialSocket", "connectAndRun: Connection established, listener notified")
             } catch (e: CancellationException) {
                 android.util.Log.d("SerialSocket", "connectAndRun: Cancelled during connect")
                 throw e
@@ -65,7 +69,7 @@ class SerialSocket(
                 if (disconnected) {
                     android.util.Log.d("SerialSocket", "connectAndRun: Ignored error due to disconnect")
                 } else {
-                    android.util.Log.e("SerialSocket", "connectAndRun: Connection failed", e)
+                    android.util.Log.e("SerialSocket", "connectAndRun: Connection failed - ${e::class.java.simpleName}: ${e.message}", e)
                     listener.onSerialConnectError(e)
                 }
                 try {

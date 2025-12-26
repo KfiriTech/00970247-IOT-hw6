@@ -83,6 +83,43 @@
                 </RadioGroup>
             </LinearLayout>
 
+            <!-- Row 1.5: Activity Type Selection -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Activity:"
+                    android:textSize="12sp"
+                    android:layout_marginEnd="8dp"/>
+
+                <RadioGroup
+                    android:id="@+id/rgActivityType"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/rbWalking"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Walking"
+                        android:checked="true" />
+
+                    <RadioButton
+                        android:id="@+id/rbRunning"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Running" />
+                </RadioGroup>
+            </LinearLayout>
+
             <!-- Row 2: Slow Mode and Record Button -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -110,11 +147,11 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- IMU Data Display Section -->
+    <!-- IMU Data Display Section with Chart -->
     <LinearLayout
         android:id="@+id/llImuData"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="280dp"
         android:orientation="vertical"
         android:padding="8dp"
         android:background="#E3F2FD"
@@ -123,116 +160,60 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Live IMU Data:"
+            android:text="Live Accelerometer Data (m/s²)"
             android:textStyle="bold"
             android:textSize="12sp"
             android:layout_marginBottom="4dp"/>
 
+        <!-- Real-time chart -->
+        <com.github.mikephil.charting.charts.LineChart
+            android:id="@+id/chartAccelerometer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- Numeric display below chart -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
 
-            <!-- Accelerometer Column -->
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvAccX"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
+                android:text="X: --"
+                android:textSize="10sp"
+                android:fontFamily="monospace"/>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Accelerometer (m/s²)"
-                    android:textStyle="bold"
-                    android:textSize="10sp"/>
-
-                <TextView
-                    android:id="@+id/tvAccX"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="X: --"
-                    android:textSize="10sp"
-                    android:fontFamily="monospace"/>
-
-                <TextView
-                    android:id="@+id/tvAccY"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Y: --"
-                    android:textSize="10sp"
-                    android:fontFamily="monospace"/>
-
-                <TextView
-                    android:id="@+id/tvAccZ"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Z: --"
-                    android:textSize="10sp"
-                    android:fontFamily="monospace"/>
-            </LinearLayout>
-
-            <!-- Gyroscope Column -->
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvAccY"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
+                android:text="Y: --"
+                android:textSize="10sp"
+                android:fontFamily="monospace"/>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Gyroscope (rad/s)"
-                    android:textStyle="bold"
-                    android:textSize="10sp"/>
+            <TextView
+                android:id="@+id/tvAccZ"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Z: --"
+                android:textSize="10sp"
+                android:fontFamily="monospace"/>
 
-                <TextView
-                    android:id="@+id/tvGyroX"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="X: --"
-                    android:textSize="10sp"
-                    android:fontFamily="monospace"/>
-
-                <TextView
-                    android:id="@+id/tvGyroY"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Y: --"
-                    android:textSize="10sp"
-                    android:fontFamily="monospace"/>
-
-                <TextView
-                    android:id="@+id/tvGyroZ"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Z: --"
-                    android:textSize="10sp"
-                    android:fontFamily="monospace"/>
-            </LinearLayout>
-
-            <!-- Timestamp Column -->
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvTimestamp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.7"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Time (s)"
-                    android:textStyle="bold"
-                    android:textSize="10sp"/>
-
-                <TextView
-                    android:id="@+id/tvTimestamp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="--"
-                    android:textSize="10sp"
-                    android:fontFamily="monospace"/>
-            </LinearLayout>
+                android:text="--"
+                android:textSize="10sp"
+                android:fontFamily="monospace"/>
         </LinearLayout>
     </LinearLayout>
 
