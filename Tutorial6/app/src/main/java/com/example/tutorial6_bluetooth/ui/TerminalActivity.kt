@@ -340,12 +340,15 @@ class TerminalActivity : AppCompatActivity() {
         chart.xAxis.granularity = 1f
         chart.xAxis.labelCount = 5
 
-        // Y-axis (Acceleration)
+        // Y-axis (Acceleration) - auto-scale to data
         chart.axisLeft.textColor = Color.BLACK
         chart.axisLeft.setDrawGridLines(true)
-        chart.axisLeft.axisMinimum = -20f
-        chart.axisLeft.axisMaximum = 20f
+        chart.axisLeft.isGranularityEnabled = true
+        chart.axisLeft.granularity = 0.5f
         chart.axisRight.isEnabled = false
+
+        // Enable auto-scaling
+        chart.isAutoScaleMinMaxEnabled = true
 
         // Legend
         val legend = chart.legend
@@ -363,11 +366,6 @@ class TerminalActivity : AppCompatActivity() {
     }
 
     private fun updateChart(timestamp: Float, accX: Float, accY: Float, accZ: Float) {
-        // Add new data points
-        chartDataX.add(Entry(timestamp, accX))
-        chartDataY.add(Entry(timestamp, accY))
-        chartDataZ.add(Entry(timestamp, accZ))
-
         // Initialize chart data on first data point
         if (chart.data == null) {
             val dataSetX = LineDataSet(chartDataX, "Acc X").apply {
@@ -375,6 +373,7 @@ class TerminalActivity : AppCompatActivity() {
                 setDrawCircles(false)
                 setDrawValues(false)
                 lineWidth = 2f
+                mode = LineDataSet.Mode.LINEAR
             }
 
             val dataSetY = LineDataSet(chartDataY, "Acc Y").apply {
@@ -382,6 +381,7 @@ class TerminalActivity : AppCompatActivity() {
                 setDrawCircles(false)
                 setDrawValues(false)
                 lineWidth = 2f
+                mode = LineDataSet.Mode.LINEAR
             }
 
             val dataSetZ = LineDataSet(chartDataZ, "Acc Z").apply {
@@ -389,23 +389,34 @@ class TerminalActivity : AppCompatActivity() {
                 setDrawCircles(false)
                 setDrawValues(false)
                 lineWidth = 2f
+                mode = LineDataSet.Mode.LINEAR
             }
 
             val lineData = LineData(dataSetX, dataSetY, dataSetZ)
             chart.data = lineData
         }
 
-        // Rolling window: remove old data
-        if (chartDataX.size > maxDataPoints) {
-            chartDataX.removeAt(0)
-            chartDataY.removeAt(0)
-            chartDataZ.removeAt(0)
+        // Rolling window: remove old data before adding new
+        if (chartDataX.size >= maxDataPoints) {
+            chart.data?.let { data ->
+                // Use dataset's removeEntry method for proper chart updates
+                (data.getDataSetByIndex(0) as? LineDataSet)?.removeFirst()
+                (data.getDataSetByIndex(1) as? LineDataSet)?.removeFirst()
+                (data.getDataSetByIndex(2) as? LineDataSet)?.removeFirst()
+            }
+        }
+
+        // Add new data points
+        chart.data?.let { data ->
+            (data.getDataSetByIndex(0) as? LineDataSet)?.addEntry(Entry(timestamp, accX))
+            (data.getDataSetByIndex(1) as? LineDataSet)?.addEntry(Entry(timestamp, accY))
+            (data.getDataSetByIndex(2) as? LineDataSet)?.addEntry(Entry(timestamp, accZ))
         }
 
         // Notify chart of data change
-        chart.data.notifyDataChanged()
+        chart.data?.notifyDataChanged()
         chart.notifyDataSetChanged()
-        chart.setVisibleXRangeMaximum(30f) // Show last 30 seconds
+        chart.setVisibleXRangeMaximum(50f) // Show last 50 time units
         chart.moveViewToX(timestamp) // Auto-scroll
         chart.invalidate()
     }
