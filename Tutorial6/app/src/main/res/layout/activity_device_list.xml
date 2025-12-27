@@ -16,7 +16,8 @@
         android:textColor="#FF0000"
         android:gravity="center"
         android:padding="16dp"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:textDirection="ltr" />
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -43,6 +44,7 @@
         android:maxWidth="320dp"
         android:layout_gravity="center_horizontal"
         android:text="Return"
-        android:layout_margin="16dp" />
+        android:layout_margin="16dp"
+        android:textDirection="ltr" />
 
 </LinearLayout>

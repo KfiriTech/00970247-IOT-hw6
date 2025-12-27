@@ -26,7 +26,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Return"
-                android:layout_marginEnd="8dp"/>
+                android:layout_marginEnd="8dp"
+                android:textDirection="ltr"/>
 
             <TextView
                 android:id="@+id/tvFilename"
@@ -35,7 +36,8 @@
                 android:layout_weight="1"
                 android:text="No active log"
                 android:textSize="14sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textDirection="ltr" />
         </LinearLayout>
 
         <!-- Control Panel: Inputs and Record Button -->
@@ -59,7 +61,8 @@
                     android:layout_weight="1"
                     android:hint="Log Prefix"
                     android:text="log"
-                    android:inputType="textNoSuggestions" />
+                    android:inputType="textNoSuggestions"
+                    android:textDirection="ltr" />
 
                 <RadioGroup
                     android:id="@+id/rgLogType"
@@ -73,13 +76,15 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="TXT"
-                        android:checked="true" />
+                        android:checked="true"
+                        android:textDirection="ltr" />
 
                     <RadioButton
                         android:id="@+id/rbCsv"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="CSV" />
+                        android:text="CSV"
+                        android:textDirection="ltr" />
                 </RadioGroup>
             </LinearLayout>
 
@@ -96,7 +101,8 @@
                     android:layout_height="wrap_content"
                     android:text="Activity:"
                     android:textSize="12sp"
-                    android:layout_marginEnd="8dp"/>
+                    android:layout_marginEnd="8dp"
+                    android:textDirection="ltr"/>
 
                 <RadioGroup
                     android:id="@+id/rgActivityType"
@@ -110,13 +116,15 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Walking"
-                        android:checked="true" />
+                        android:checked="true"
+                        android:textDirection="ltr" />
 
                     <RadioButton
                         android:id="@+id/rbRunning"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Running" />
+                        android:text="Running"
+                        android:textDirection="ltr" />
                 </RadioGroup>
             </LinearLayout>
 
@@ -133,7 +141,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Slow Mode" />
+                    android:text="Slow Mode"
+                    android:textDirection="ltr" />
 
                 <Button
                     android:id="@+id/btnRecord"
@@ -142,7 +151,8 @@
                     android:text="Record"
                     android:backgroundTint="#0000FF"
                     android:textColor="#FFFFFF"
-                    android:layout_marginStart="8dp"/>
+                    android:layout_marginStart="8dp"
+                    android:textDirection="ltr"/>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
@@ -163,7 +173,8 @@
             android:text="Live Accelerometer Data (m/s²)"
             android:textStyle="bold"
             android:textSize="12sp"
-            android:layout_marginBottom="4dp"/>
+            android:layout_marginBottom="4dp"
+            android:textDirection="ltr"/>
 
         <!-- Real-time chart -->
         <com.github.mikephil.charting.charts.LineChart
@@ -186,7 +197,8 @@
                 android:layout_weight="1"
                 android:text="X: --"
                 android:textSize="10sp"
-                android:fontFamily="monospace"/>
+                android:fontFamily="monospace"
+                android:textDirection="ltr"/>
 
             <TextView
                 android:id="@+id/tvAccY"
@@ -195,7 +207,8 @@
                 android:layout_weight="1"
                 android:text="Y: --"
                 android:textSize="10sp"
-                android:fontFamily="monospace"/>
+                android:fontFamily="monospace"
+                android:textDirection="ltr"/>
 
             <TextView
                 android:id="@+id/tvAccZ"
@@ -204,7 +217,8 @@
                 android:layout_weight="1"
                 android:text="Z: --"
                 android:textSize="10sp"
-                android:fontFamily="monospace"/>
+                android:fontFamily="monospace"
+                android:textDirection="ltr"/>
 
             <TextView
                 android:id="@+id/tvTimestamp"
@@ -213,7 +227,8 @@
                 android:layout_weight="0.7"
                 android:text="--"
                 android:textSize="10sp"
-                android:fontFamily="monospace"/>
+                android:fontFamily="monospace"
+                android:textDirection="ltr"/>
         </LinearLayout>
     </LinearLayout>
 
@@ -237,13 +252,15 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Type a message" />
+            android:hint="Type a message"
+            android:textDirection="ltr" />
 
         <Button
             android:id="@+id/btnSend"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Send" />
+            android:text="Send"
+            android:textDirection="ltr" />
     </LinearLayout>
 
 </LinearLayout>

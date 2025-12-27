@@ -23,28 +23,32 @@
             android:layout_height="wrap_content"
             android:text="File: --"
             android:textStyle="bold"
-            android:textSize="12sp"/>
+            android:textSize="12sp"
+            android:textDirection="ltr"/>
 
         <TextView
             android:id="@+id/tvTimestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Time: --"
-            android:textSize="10sp"/>
+            android:textSize="10sp"
+            android:textDirection="ltr"/>
 
         <TextView
             android:id="@+id/tvActivity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Activity: --"
-            android:textSize="10sp"/>
+            android:textSize="10sp"
+            android:textDirection="ltr"/>
 
         <TextView
             android:id="@+id/tvSteps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Steps: --"
-            android:textSize="10sp"/>
+            android:textSize="10sp"
+            android:textDirection="ltr"/>
     </LinearLayout>
 
     <!-- Accelerometer Chart -->
@@ -68,6 +72,7 @@
         android:layout_height="wrap_content"
         android:text="Close"
         android:layout_gravity="center"
-        android:layout_marginTop="8dp"/>
+        android:layout_marginTop="8dp"
+        android:textDirection="ltr"/>
 
 </LinearLayout>

@@ -22,7 +22,8 @@
             android:textSize="24sp"
             android:textStyle="bold"
             android:layout_marginBottom="16dp"
-            android:textColor="#333333"/>
+            android:textColor="#333333"
+            android:textDirection="ltr"/>
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -52,7 +53,8 @@
                 android:layout_height="wrap_content"
                 android:text="View Text"
                 android:layout_marginEnd="8dp"
-                android:enabled="false"/>
+                android:enabled="false"
+                android:textDirection="ltr"/>
 
             <Button
                 android:id="@+id/btnViewChart"
@@ -60,7 +62,8 @@
                 android:layout_height="wrap_content"
                 android:text="View Chart"
                 android:layout_marginEnd="8dp"
-                android:enabled="false"/>
+                android:enabled="false"
+                android:textDirection="ltr"/>
 
             <Button
                 android:id="@+id/btnDelete"
@@ -68,7 +71,8 @@
                 android:layout_height="wrap_content"
                 android:text="Delete"
                 android:backgroundTint="#FF5252"
-                android:enabled="false"/>
+                android:enabled="false"
+                android:textDirection="ltr"/>
 
         </LinearLayout>
 
@@ -77,7 +81,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Return"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp"
+            android:textDirection="ltr"/>
 
     </LinearLayout>
 

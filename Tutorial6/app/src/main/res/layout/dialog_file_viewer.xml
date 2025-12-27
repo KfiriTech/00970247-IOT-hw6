@@ -12,7 +12,8 @@
         android:text="File Content"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="8dp"
+        android:textDirection="ltr"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvFileContent"
@@ -27,6 +28,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Close"
-        android:layout_marginTop="8dp"/>
+        android:layout_marginTop="8dp"
+        android:textDirection="ltr"/>
 
 </LinearLayout>

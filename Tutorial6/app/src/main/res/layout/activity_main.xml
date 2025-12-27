@@ -34,26 +34,30 @@
         android:id="@+id/btnConnect"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Connect" />
+        android:text="Connect"
+        android:textDirection="ltr" />
 
     <Button
         android:id="@+id/btnDisconnect"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Disconnect"
-        android:enabled="false" />
+        android:enabled="false"
+        android:textDirection="ltr" />
 
     <Button
         android:id="@+id/btnTerminal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Terminal" />
+        android:text="Terminal"
+        android:textDirection="ltr" />
 
     <Button
         android:id="@+id/btnFileExplorer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="File Explorer"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="16dp"
+        android:textDirection="ltr"/>
 
 </LinearLayout>
