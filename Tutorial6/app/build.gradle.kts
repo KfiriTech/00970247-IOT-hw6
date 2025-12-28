@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-}
+    alias(libs.plugins.chaquopy) }
 
 android {
     namespace = "com.example.tutorial6_bluetooth"
@@ -15,7 +15,13 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk{
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a","x86","x86_64")
+        }
     }
+
+
 
     buildTypes {
         release {
@@ -37,6 +43,16 @@ android {
         viewBinding = true
     }
 }
+chaquopy {
+    defaultConfig {
+        version = "3.11"
+        buildPython("C:/Python/Python311/python.exe")
+        pip{
+            install("numpy")
+        }
+    }
+}
+
 
 dependencies {
 
