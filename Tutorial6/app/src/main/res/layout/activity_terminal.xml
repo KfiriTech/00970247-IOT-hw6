@@ -183,6 +183,35 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
+        <!-- Step Counter Display -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="8dp"
+            android:background="#BBDEFB">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Steps Detected: "
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textDirection="ltr"/>
+
+            <TextView
+                android:id="@+id/tvStepCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:textColor="#1976D2"
+                android:layout_marginStart="8dp"
+                android:textDirection="ltr"/>
+        </LinearLayout>
+
         <!-- Numeric display below chart -->
         <LinearLayout
             android:layout_width="match_parent"

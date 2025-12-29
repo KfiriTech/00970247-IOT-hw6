@@ -1,7 +1,29 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd explicit LTR text direction to all layout files\n\nSet android:textDirection=\"ltr\" attribute on all text-based views across the application to ensure consistent left-to-right text rendering. This affects TextViews, EditTexts, Buttons, RadioButtons, and SwitchCompat elements in all layout files.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(mkdir:*)",
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(./gradlew clean)",
+      "Bash(./gradlew:*)",
+      "Bash(git stash:*)",
+      "Bash(./gradlew help:*)",
+      "Bash(java -version:*)",
+      "Bash(where javac:*)",
+      "Bash(\"C:\\Users\\admin1\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe\" --version)",
+      "Bash(cat:*)",
+      "Bash(dir \"C:\\Program Files\\Android\\Android Studio\\jbr\\bin\\java.exe\" 2)",
+      "Bash(nul)",
+      "Bash(dir \"C:\\Program Files\\Android\\Android Studio\\jre\\bin\\java.exe\" 2)",
+      "Bash(\"C:\\Program Files\\Android\\Android Studio\\jbr\\bin\\java.exe\" -version)",
+      "Bash(set \"JAVA_HOME=C:\\Program Files\\Android\\Android Studio\\jbr\")",
+      "Bash(set \"PATH=%JAVA_HOME%\\bin;%PATH%\")",
+      "Bash(gradlew assembleDebug:*)",
+      "Bash(.gradlew assembleDebug:*)",
+      "Bash(cmd /c \"set JAVA_HOME=C:\\Program Files\\Android\\Android Studio\\jbr && set PATH=%JAVA_HOME%\\bin;%PATH% && gradlew.bat assembleDebug\")",
+      "Bash(build_with_as_jdk.bat)",
+      "Bash(./build_with_as_jdk.bat)"
     ]
   }
 }

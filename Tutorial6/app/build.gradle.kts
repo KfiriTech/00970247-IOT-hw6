@@ -1,7 +1,12 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.chaquopy) }
+    alias(libs.plugins.chaquopy)
+}
+
+kotlin {
+    jvmToolchain(17)
+}
 
 android {
     namespace = "com.example.tutorial6_bluetooth"
@@ -33,26 +38,26 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     buildFeatures {
         viewBinding = true
     }
 }
+
 chaquopy {
     defaultConfig {
         version = "3.11"
-        buildPython("C:/Python/Python311/python.exe")
-        pip{
+        buildPython("C:/Users/admin1/AppData/Local/Python/pythoncore-3.14-64/python.exe")
+        pip {
             install("numpy")
         }
     }
 }
-
 
 dependencies {
 

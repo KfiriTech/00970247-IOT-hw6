@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tutorial6_bluetooth.R
+import com.example.tutorial6_bluetooth.algorithm.StepCounter
 import com.example.tutorial6_bluetooth.constants.Constants
 import com.example.tutorial6_bluetooth.databinding.ActivityTerminalBinding
 import com.example.tutorial6_bluetooth.service.SerialService
@@ -48,6 +49,9 @@ class TerminalActivity : AppCompatActivity() {
     private val chartDataZ = ArrayList<Entry>()
     private val maxDataPoints = 100 // Rolling window
 
+    // Step counter for real-time step detection
+    private var stepCounter: StepCounter? = null
+
     data class Message(val text: String, val isIncoming: Boolean)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,12 +76,17 @@ class TerminalActivity : AppCompatActivity() {
                 // Stop - Show step count dialog
                 showStepCountDialog()
             } else {
-                // Start - Capture metadata
+                // Start - Capture metadata and initialize step counter
                 val prefix = binding.etLogPrefix.text.toString()
                 val type = if (binding.rbCsv.isChecked) "CSV" else "TXT"
                 val activityType = if (binding.rbRunning.isChecked) "Running" else "Walking"
                 // Format: dd/MM/yyyy  HH:mm (with 2 spaces before time as per assignment)
                 val timestamp = SimpleDateFormat("dd/MM/yyyy  HH:mm", Locale.getDefault()).format(Date())
+
+                // Initialize Python and step counter for the selected activity type
+                StepCounter.initPython(this)
+                stepCounter = StepCounter(activityType)
+                binding.tvStepCount.text = "0"
 
                 val intent = Intent(this, SerialService::class.java)
                 intent.action = Constants.ACTION_START_LOGGING
@@ -221,6 +230,16 @@ class TerminalActivity : AppCompatActivity() {
 
             // Update real-time chart with accelerometer data
             updateChart(timestamp, accX, accY, accZ)
+
+            // Process step detection if counter is active
+            stepCounter?.let { counter ->
+                val stepDetected = counter.addSample(timestamp, accX, accY, accZ)
+                if (stepDetected) {
+                    android.util.Log.d("TerminalActivity", "Step detected at $timestamp")
+                }
+                // Update step count display
+                binding.tvStepCount.text = counter.getStepCount().toString()
+            }
         }
     }
 
@@ -426,9 +445,17 @@ class TerminalActivity : AppCompatActivity() {
         input.inputType = InputType.TYPE_CLASS_NUMBER
         input.hint = "Enter step count"
 
+        // Pre-fill with detected step count if available
+        val detectedSteps = stepCounter?.getStepCount() ?: 0
+        val message = if (detectedSteps > 0) {
+            "Detected steps: $detectedSteps\nEnter the actual number of steps:"
+        } else {
+            "Enter the actual number of steps:"
+        }
+
         AlertDialog.Builder(this)
             .setTitle("Step Count")
-            .setMessage("Enter the actual number of steps:")
+            .setMessage(message)
             .setView(input)
             .setPositiveButton("Save") { dialog, _ ->
                 val steps = input.text.toString().ifEmpty { "N/A" }
@@ -439,6 +466,9 @@ class TerminalActivity : AppCompatActivity() {
                 intent.putExtra(Constants.EXTRA_STEP_COUNT, steps)
                 startService(intent)
 
+                // Clear step counter
+                stepCounter = null
+
                 dialog.dismiss()
             }
             .setNegativeButton("Skip") { dialog, _ ->
@@ -446,6 +476,21 @@ class TerminalActivity : AppCompatActivity() {
                 intent.action = Constants.ACTION_STOP_LOGGING
                 intent.putExtra(Constants.EXTRA_STEP_COUNT, "N/A")
                 startService(intent)
+
+                // Clear step counter
+                stepCounter = null
+
+                dialog.dismiss()
+            }
+            .setNeutralButton("Use Detected ($detectedSteps)") { dialog, _ ->
+                // Use the detected step count
+                val intent = Intent(this, SerialService::class.java)
+                intent.action = Constants.ACTION_STOP_LOGGING
+                intent.putExtra(Constants.EXTRA_STEP_COUNT, detectedSteps.toString())
+                startService(intent)
+
+                // Clear step counter
+                stepCounter = null
 
                 dialog.dismiss()
             }

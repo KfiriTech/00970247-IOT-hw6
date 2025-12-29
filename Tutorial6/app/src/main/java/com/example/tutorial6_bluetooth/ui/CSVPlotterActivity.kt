@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.tutorial6_bluetooth.algorithm.StepCounter
 import com.example.tutorial6_bluetooth.databinding.ActivityCsvPlotterBinding
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Legend
@@ -45,6 +46,7 @@ class CSVPlotterActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCsvPlotterBinding
     private lateinit var chartAcc: LineChart
     private lateinit var chartGyro: LineChart
+    private var currentCSVData: CSVData? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +57,10 @@ class CSVPlotterActivity : AppCompatActivity() {
         chartGyro = binding.chartGyroscope
 
         binding.btnClose.setOnClickListener { finish() }
+
+        binding.btnCalculateSteps.setOnClickListener {
+            calculateSteps()
+        }
 
         // Get file path from intent
         val filePath = intent.getStringExtra("FILE_PATH")
@@ -68,6 +74,9 @@ class CSVPlotterActivity : AppCompatActivity() {
             val csvData = withContext(Dispatchers.IO) {
                 parseCSV(file)
             }
+
+            // Store the data for step calculation
+            currentCSVData = csvData
 
             // Display metadata
             if (csvData.metadata != null) {
@@ -199,5 +208,70 @@ class CSVPlotterActivity : AppCompatActivity() {
         legend.form = Legend.LegendForm.LINE
         legend.verticalAlignment = Legend.LegendVerticalAlignment.TOP
         legend.horizontalAlignment = Legend.LegendHorizontalAlignment.RIGHT
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun calculateSteps() {
+        val csvData = currentCSVData ?: return
+        val readings = csvData.readings
+
+        if (readings.isEmpty()) {
+            binding.tvCalculatedSteps.text = "0"
+            return
+        }
+
+        lifecycleScope.launch {
+            // Disable button during calculation
+            binding.btnCalculateSteps.isEnabled = false
+            binding.btnCalculateSteps.text = "Calculating..."
+
+            val calculatedSteps = withContext(Dispatchers.IO) {
+                // Extract data arrays
+                val timestamps = readings.map { it.timestamp }.toFloatArray()
+                val accX = readings.map { it.accX }.toFloatArray()
+                val accY = readings.map { it.accY }.toFloatArray()
+                val accZ = readings.map { it.accZ }.toFloatArray()
+
+                // Determine activity type from metadata or default to Walking
+                val activityType = csvData.metadata?.activityType ?: "Walking"
+
+                // Initialize Python if needed
+                StepCounter.initPython(this@CSVPlotterActivity)
+
+                // Calculate steps using Python algorithm via Chaquopy
+                StepCounter.countStepsFromData(timestamps, accX, accY, accZ, activityType)
+            }
+
+            // Display calculated steps
+            binding.tvCalculatedSteps.text = calculatedSteps.toString()
+
+            // Show comparison if recorded steps are available
+            val recordedStepsStr = csvData.metadata?.stepCount
+            if (!recordedStepsStr.isNullOrEmpty() && recordedStepsStr != "N/A" && recordedStepsStr != "PENDING") {
+                val recordedSteps = recordedStepsStr.toIntOrNull()
+                if (recordedSteps != null && recordedSteps > 0) {
+                    binding.llComparison.visibility = View.VISIBLE
+                    binding.tvRecordedSteps.text = recordedSteps.toString()
+
+                    // Calculate accuracy
+                    val accuracy = (calculatedSteps.toFloat() / recordedSteps.toFloat() * 100).coerceIn(0f, 200f)
+                    val accuracyText = String.format("%.1f%%", accuracy)
+                    binding.tvAccuracy.text = accuracyText
+
+                    // Color code accuracy
+                    when {
+                        accuracy >= 90f && accuracy <= 110f -> binding.tvAccuracy.setTextColor(Color.parseColor("#4CAF50")) // Green
+                        accuracy >= 80f && accuracy <= 120f -> binding.tvAccuracy.setTextColor(Color.parseColor("#FF9800")) // Orange
+                        else -> binding.tvAccuracy.setTextColor(Color.parseColor("#F44336")) // Red
+                    }
+                }
+            }
+
+            // Re-enable button
+            binding.btnCalculateSteps.isEnabled = true
+            binding.btnCalculateSteps.text = "Calculate Steps"
+
+            android.util.Log.d("CSVPlotter", "Calculated steps: $calculatedSteps from ${readings.size} readings")
+        }
     }
 }
