@@ -235,11 +235,30 @@ class CSVPlotterActivity : AppCompatActivity() {
                 // Determine activity type from metadata or default to Walking
                 val activityType = csvData.metadata?.activityType ?: "Walking"
 
-                // Initialize Python if needed
-                StepCounter.initPython(this@CSVPlotterActivity)
+                // Try Python implementation first, fallback to Kotlin if it fails
+                try {
+                    // Initialize Python if needed
+                    StepCounter.initPython(this@CSVPlotterActivity)
 
-                // Calculate steps using Python algorithm via Chaquopy
-                StepCounter.countStepsFromData(timestamps, accX, accY, accZ, activityType)
+                    // Calculate steps using Python algorithm via Chaquopy
+                    val result = StepCounter.countStepsFromData(timestamps, accX, accY, accZ, activityType)
+
+                    // If result is 0 but we have significant data, try Kotlin fallback
+                    if (result == 0 && readings.size > 10) {
+                        android.util.Log.w("CSVPlotter", "Python returned 0, trying Kotlin fallback")
+                        com.example.tutorial6_bluetooth.algorithm.StepCounterKotlin.countStepsFromArrays(
+                            timestamps, accX, accY, accZ, activityType
+                        )
+                    } else {
+                        result
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("CSVPlotter", "Python step counter failed, using Kotlin fallback", e)
+                    // Fallback to pure Kotlin implementation
+                    com.example.tutorial6_bluetooth.algorithm.StepCounterKotlin.countStepsFromArrays(
+                        timestamps, accX, accY, accZ, activityType
+                    )
+                }
             }
 
             // Display calculated steps

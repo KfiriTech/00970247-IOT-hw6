@@ -23,7 +23,9 @@
       "Bash(.gradlew assembleDebug:*)",
       "Bash(cmd /c \"set JAVA_HOME=C:\\Program Files\\Android\\Android Studio\\jbr && set PATH=%JAVA_HOME%\\bin;%PATH% && gradlew.bat assembleDebug\")",
       "Bash(build_with_as_jdk.bat)",
-      "Bash(./build_with_as_jdk.bat)"
+      "Bash(./build_with_as_jdk.bat)",
+      "Bash(gradlew.bat assembleDebug)",
+      "Bash(cmd /c \"gradlew.bat assembleDebug\")"
     ]
   }
 }

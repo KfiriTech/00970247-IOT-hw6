@@ -26,14 +26,14 @@ class StepCounter:
         self.last_step_time = 0.0
 
         # Activity-specific thresholds
-        # Assuming sensor outputs in g units (1g = 9.8 m/s²)
-        # Lowered thresholds to work with typical IMU sensor output
+        # Sensor outputs in m/s² (not g units)
+        # Thresholds tuned for typical walking/running patterns
         if activity_type == "Running":
-            self.magnitude_threshold = 1.15  # g for running
+            self.magnitude_threshold = 13.0  # m/s² for running
             self.min_step_interval = 0.25    # seconds (faster cadence)
         else:  # Walking
-            self.magnitude_threshold = 0.95  # g for walking (catches most walking patterns)
-            self.min_step_interval = 0.30    # seconds (normal walking pace)
+            self.magnitude_threshold = 11.5  # m/s² for walking
+            self.min_step_interval = 0.35    # seconds (normal walking pace)
 
         # Peak detection state
         self.previous_magnitude = 0.0
@@ -183,13 +183,13 @@ def count_steps_from_magnitude(timestamps: List[float],
     Returns:
         Total number of steps detected
     """
-    # Thresholds in g units (1g = 9.8 m/s²)
+    # Thresholds in m/s² (not g units)
     if activity_type == "Running":
-        threshold = 1.15  # g for running
+        threshold = 13.0  # m/s² for running
         min_interval = 0.25
     else:
-        threshold = 0.95  # g for walking
-        min_interval = 0.30
+        threshold = 11.5  # m/s² for walking
+        min_interval = 0.35
 
     steps = 0
     last_step_time = 0.0

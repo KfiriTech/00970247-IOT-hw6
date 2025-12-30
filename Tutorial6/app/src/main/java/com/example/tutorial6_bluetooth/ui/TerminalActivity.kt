@@ -51,6 +51,7 @@ class TerminalActivity : AppCompatActivity() {
 
     // Step counter for real-time step detection
     private var stepCounter: StepCounter? = null
+    private var stepCounterKotlin: com.example.tutorial6_bluetooth.algorithm.StepCounterKotlin? = null
 
     data class Message(val text: String, val isIncoming: Boolean)
 
@@ -83,9 +84,18 @@ class TerminalActivity : AppCompatActivity() {
                 // Format: dd/MM/yyyy  HH:mm (with 2 spaces before time as per assignment)
                 val timestamp = SimpleDateFormat("dd/MM/yyyy  HH:mm", Locale.getDefault()).format(Date())
 
-                // Initialize Python and step counter for the selected activity type
-                StepCounter.initPython(this)
-                stepCounter = StepCounter(activityType)
+                // Initialize step counter for the selected activity type
+                // Use Kotlin implementation for better reliability
+                try {
+                    StepCounter.initPython(this)
+                    stepCounter = StepCounter(activityType)
+                    stepCounterKotlin = null
+                    android.util.Log.d("TerminalActivity", "Using Python step counter")
+                } catch (e: Exception) {
+                    android.util.Log.w("TerminalActivity", "Python failed, using Kotlin step counter", e)
+                    stepCounter = null
+                    stepCounterKotlin = com.example.tutorial6_bluetooth.algorithm.StepCounterKotlin(activityType)
+                }
                 binding.tvStepCount.text = "0"
 
                 val intent = Intent(this, SerialService::class.java)
@@ -236,6 +246,16 @@ class TerminalActivity : AppCompatActivity() {
                 val stepDetected = counter.addSample(timestamp, accX, accY, accZ)
                 if (stepDetected) {
                     android.util.Log.d("TerminalActivity", "Step detected at $timestamp")
+                }
+                // Update step count display
+                binding.tvStepCount.text = counter.getStepCount().toString()
+            }
+
+            // Fallback to Kotlin counter if Python counter not available
+            stepCounterKotlin?.let { counter ->
+                val stepDetected = counter.addSample(timestamp, accX, accY, accZ)
+                if (stepDetected) {
+                    android.util.Log.d("TerminalActivity", "Step detected (Kotlin) at $timestamp")
                 }
                 // Update step count display
                 binding.tvStepCount.text = counter.getStepCount().toString()
@@ -446,7 +466,7 @@ class TerminalActivity : AppCompatActivity() {
         input.hint = "Enter step count"
 
         // Pre-fill with detected step count if available
-        val detectedSteps = stepCounter?.getStepCount() ?: 0
+        val detectedSteps = stepCounter?.getStepCount() ?: stepCounterKotlin?.getStepCount() ?: 0
         val message = if (detectedSteps > 0) {
             "Detected steps: $detectedSteps\nEnter the actual number of steps:"
         } else {
@@ -468,6 +488,7 @@ class TerminalActivity : AppCompatActivity() {
 
                 // Clear step counter
                 stepCounter = null
+                stepCounterKotlin = null
 
                 dialog.dismiss()
             }
@@ -479,6 +500,7 @@ class TerminalActivity : AppCompatActivity() {
 
                 // Clear step counter
                 stepCounter = null
+                stepCounterKotlin = null
 
                 dialog.dismiss()
             }
@@ -491,6 +513,7 @@ class TerminalActivity : AppCompatActivity() {
 
                 // Clear step counter
                 stepCounter = null
+                stepCounterKotlin = null
 
                 dialog.dismiss()
             }
